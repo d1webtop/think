@@ -495,7 +495,7 @@ class Template
         foreach ($tLib->getTags() as $name => $val) {
             $tags = [$name];
             if (isset($val['alias'])) {
-// 别名设置
+                // 别名设置
                 $tags   = explode(',', $val['alias']);
                 $tags[] = $name;
             }
@@ -775,7 +775,7 @@ class Template
         $parseStr = $this->parseTemplateName($tmplPublicName);
         // 替换变量
         foreach ($vars as $key => $val) {
-            if (strpos($val, '[' . $key . ']')) {
+            if (strpos($parseStr, '[' . $key . ']')) {
                 $parseStr = str_replace('[' . $key . ']', $val, $parseStr);
             }
         }

@@ -50,14 +50,16 @@ class App
         // 设置系统时区
         date_default_timezone_set($config['default_timezone']);
 
-        // 默认语言
-        $lang = strtolower($config['default_lang']);
-        Lang::range($lang);
-        // 加载默认语言包
-        Lang::load(THINK_PATH . 'Lang/' . $lang . EXT);
-
         // 监听app_init
         APP_HOOK && Hook::listen('app_init');
+
+        // 开启多语言机制
+        if ($config['lang_switch_on']) {
+            // 获取当前语言
+            defined('LANG_SET') or define('LANG_SET', Lang::range());
+            // 加载系统语言包
+            Lang::load(THINK_PATH . 'lang' . DS . LANG_SET . EXT);
+        }
 
         // 启动session API CLI 不开启
         if (!IS_CLI && !IS_API && $config['use_session']) {
@@ -113,7 +115,11 @@ class App
                 // 操作方法执行完成监听
                 APP_HOOK && Hook::listen('action_end', $data);
                 // 返回数据
-                Response::returnData($data, Config::get('default_return_type'), Config::get('response_exit'));
+                if (defined('IN_UNIT_TEST')) {
+                    return $data;
+                } else {
+                    Response::returnData($data, Config::get('default_return_type'), Config::get('response_exit'));
+                }
             } else {
                 // 操作方法不是Public 抛出异常
                 throw new \ReflectionException();
@@ -123,8 +129,14 @@ class App
             if (method_exists($instance, '_empty')) {
                 $method = new \ReflectionMethod($instance, '_empty');
                 $data   = $method->invokeArgs($instance, [$action, '']);
+                // 操作方法执行完成监听
+                APP_HOOK && Hook::listen('action_end', $data);
                 // 返回数据
-                Response::returnData($data, Config::get('default_return_type'), Config::get('response_exit'));
+                if (defined('IN_UNIT_TEST')) {
+                    return $data;
+                } else {
+                    Response::returnData($data, Config::get('default_return_type'), Config::get('response_exit'));
+                }
             } else {
                 throw new Exception('method [ ' . (new \ReflectionClass($instance))->getName() . '->' . $action . ' ] not exists ', 10002);
             }
@@ -213,6 +225,11 @@ class App
             // 加载公共文件
             if (is_file($path . 'common' . EXT)) {
                 include $path . 'common' . EXT;
+            }
+
+            // 加载当前模块语言包
+            if ($config['lang_switch_on'] && $module) {
+                Lang::load($path . 'lang' . DS . LANG_SET . EXT);
             }
         }
     }
