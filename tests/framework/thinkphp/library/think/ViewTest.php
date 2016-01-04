@@ -89,34 +89,48 @@ class viewTest extends \PHPUnit_Framework_TestCase
         $data = $view_instance->engine('think');
         $think_engine = new \think\view\driver\Think;
         $this->assertAttributeEquals($think_engine,'engine',$view_instance);
-        // 
-        // $data = $view->engine('engine', array('key'=>'value'));
     }  
 
-    // /**
-    //  *  测试引擎设置
-    //  * @return  mixed
-    //  * @access public
-    //  */
-    // public function testTheme()
-    // {
-    //     $view_instance = \think\View::getInstance();
-    //     $data = $view->engine('key', 'value');
-    //     $data = $view->engine('engine', array('key'=>'value'));
-    // } 
+    /**
+     *  测试引擎设置
+     * @return  mixed
+     * @access public
+     */
+    public function testTheme()
+    {
+        $view_instance = \think\View::getInstance();
+        $data = $view_instance->theme(true);
+        //反射类取出私有属性
+        $reflection = new \ReflectionClass('\think\View');
+        $property = $reflection->getProperty('config');
+        $property->setAccessible(true);
+        $config_value = $property->getValue($view_instance);
+        $this->assertTrue($config_value['theme_on']);
+        $this->assertTrue($config_value['auto_detect_theme']);
+        //关闭主题测试
+        $data = $view_instance->theme(false);
+        $config_value = $property->getValue($view_instance);
+        $this->assertFalse($config_value['theme_on']);
+        //指定主题测试
+        $data = $view_instance->theme('theme_name');
+        $config_value = $property->getValue($view_instance);
+        $this->assertTrue($config_value['theme_on']);
+        $this->assertAttributeEquals('theme_name','theme',$view_instance);
+    } 
 
 
-    // /**
-    //  *  测试引擎设置
-    //  * @return  mixed
-    //  * @access public
-    //  */
-    // public function testFetch()
-    // {
-    //     $view_instance = \think\View::getInstance();
-    //     $data = $view->engine('key', 'value');
-    //     $data = $view->engine('engine', array('key'=>'value'));
-    // }   
+    /**
+     *  测试引擎设置
+     * @return  mixed
+     * @access public
+     */
+    public function testFetch()
+    {
+        $view_instance = \think\View::getInstance();
+        $data = $view_instance->fetch();
+        var_dump($data);
+        $data = $view->engine('engine', array('key'=>'value'));
+    }   
 
     // /**
     //  *  测试显示
